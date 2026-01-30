@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ExternalLink, ChevronDown, ChevronUp, User } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { TalentMember } from "@/lib/google-sheets";
 
 interface TalentCardProps {
@@ -12,13 +12,31 @@ interface TalentCardProps {
 
 export function TalentCard({ member, index }: TalentCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [profilePicUrl, setProfilePicUrl] = useState<string>("");
+  const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
 
-  const getXHandle = (url: string) => {
-    if (!url) return null;
-    const match = url.match(/(?:twitter\.com|x\.com)\/([^/?]+)/i);
-    return match ? match[1] : null;
+  // Extract username from X profile URL (same approach as landing page)
+  const getUsername = (xProfile: string): string | null => {
+    if (!xProfile) return null;
+    // Remove URL prefix and trailing slash, then remove query params
+    const username = xProfile
+      .replace(/^https?:\/\/(www\.)?(twitter\.com|x\.com)\//i, '')
+      .replace(/\/$/, '')
+      .split('?')[0]
+      .split('/')[0];
+    return username || null;
   };
+
+  const username = getUsername(member.xProfile);
+
+  useEffect(() => {
+    if (username) {
+      const unavatarUrl = `https://unavatar.io/twitter/${username}`;
+      const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(unavatarUrl)}`;
+      setProfilePicUrl(proxyUrl);
+    }
+  }, [username]);
 
   const joinDate = member.timestamp
     ? new Date(member.timestamp).toLocaleDateString("en-US", {
@@ -26,11 +44,6 @@ export function TalentCard({ member, index }: TalentCardProps) {
         day: "numeric",
         year: "numeric",
       })
-    : null;
-
-  const xHandle = getXHandle(member.xProfile);
-  const profilePicUrl = xHandle
-    ? `/api/proxy-image?url=${encodeURIComponent(`https://unavatar.io/twitter/${xHandle}`)}`
     : null;
 
   return (
@@ -57,12 +70,20 @@ export function TalentCard({ member, index }: TalentCardProps) {
           {/* Profile Picture */}
           <div className="relative w-12 h-12 rounded-full overflow-hidden bg-zinc-800 border-2 border-zinc-700/50 group-hover:border-red-500/30 transition-colors flex-shrink-0">
             {profilePicUrl && !imgError ? (
-              <img
-                src={profilePicUrl}
-                alt={member.name}
-                className="w-full h-full object-cover"
-                onError={() => setImgError(true)}
-              />
+              <>
+                <img
+                  src={profilePicUrl}
+                  alt={member.name}
+                  className={`w-full h-full object-cover transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  onLoad={() => setImgLoaded(true)}
+                  onError={() => setImgError(true)}
+                />
+                {!imgLoaded && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-700 to-zinc-800">
+                    <div className="w-5 h-5 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
+              </>
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-700 to-zinc-800">
                 <User className="w-5 h-5 text-zinc-500" />
@@ -75,19 +96,18 @@ export function TalentCard({ member, index }: TalentCardProps) {
           <div className="min-w-0 flex-1">
             <h3 className="text-lg font-medium text-white group-hover:text-red-50 transition-colors truncate">{member.name}</h3>
             {/* X handle */}
-            {xHandle && (
+            {username && (
               <a
-                href={member.xProfile}
+                href={member.xProfile.startsWith('http') ? member.xProfile : `https://x.com/${username}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
               >
-                @{xHandle}
+                @{username}
               </a>
             )}
           </div>
         </div>
-
 
         {/* Skills */}
         {member.skills.length > 0 && (

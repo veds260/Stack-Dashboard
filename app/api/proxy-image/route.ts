@@ -7,13 +7,32 @@ export async function GET(request: Request) {
   }
 
   try {
-    const response = await fetch(imageUrl);
-    const blob = await response.blob();
-
-    return new Response(blob, {
+    const response = await fetch(imageUrl, {
       headers: {
-        'Content-Type': response.headers.get('Content-Type') || 'image/png',
+        'User-Agent': 'Mozilla/5.0 (compatible; StackDaily/1.0)',
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+      return new Response('Failed to fetch image', { status: response.status });
+    }
+
+    const contentType = response.headers.get('Content-Type');
+
+    // Check if it's actually an image
+    if (!contentType?.startsWith('image/')) {
+      console.error(`Invalid content type: ${contentType}`);
+      return new Response('Invalid image', { status: 400 });
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+
+    return new Response(arrayBuffer, {
+      headers: {
+        'Content-Type': contentType,
         'Cache-Control': 'public, max-age=86400',
+        'Access-Control-Allow-Origin': '*',
       },
     });
   } catch (error) {
