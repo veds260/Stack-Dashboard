@@ -1,9 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Twitter, Send, ExternalLink, ChevronDown, ChevronUp, User } from "lucide-react";
+import { Send, ExternalLink, ChevronDown, ChevronUp, User } from "lucide-react";
 import { useState } from "react";
-import Image from "next/image";
 import type { TalentMember } from "@/lib/google-sheets";
 
 interface TalentCardProps {
@@ -15,7 +14,7 @@ export function TalentCard({ member, index }: TalentCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [imgError, setImgError] = useState(false);
 
-  const formatXHandle = (url: string) => {
+  const getXHandle = (url: string) => {
     if (!url) return null;
     const match = url.match(/(?:twitter\.com|x\.com)\/([^/?]+)/i);
     return match ? match[1] : null;
@@ -29,7 +28,7 @@ export function TalentCard({ member, index }: TalentCardProps) {
       })
     : null;
 
-  const xHandle = formatXHandle(member.xProfile);
+  const xHandle = getXHandle(member.xProfile);
   const profilePicUrl = xHandle ? `https://unavatar.io/twitter/${xHandle}` : null;
 
   return (
@@ -52,15 +51,14 @@ export function TalentCard({ member, index }: TalentCardProps) {
 
       <div className="relative">
         {/* Header with pfp and name */}
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-3 mb-4">
           {/* Profile Picture */}
           <div className="relative w-12 h-12 rounded-full overflow-hidden bg-zinc-800 border-2 border-zinc-700/50 group-hover:border-red-500/30 transition-colors flex-shrink-0">
             {profilePicUrl && !imgError ? (
-              <Image
+              <img
                 src={profilePicUrl}
                 alt={member.name}
-                fill
-                className="object-cover"
+                className="w-full h-full object-cover"
                 onError={() => setImgError(true)}
               />
             ) : (
@@ -72,23 +70,19 @@ export function TalentCard({ member, index }: TalentCardProps) {
             <div className="absolute inset-0 rounded-full ring-2 ring-red-500/0 group-hover:ring-red-500/20 transition-all duration-500" />
           </div>
 
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h3 className="text-lg font-medium text-white group-hover:text-red-50 transition-colors truncate">{member.name}</h3>
-            {/* Social links */}
-            <div className="flex items-center gap-2 text-sm">
-              {xHandle && (
-                <motion.a
-                  href={member.xProfile}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors"
-                  whileHover={{ x: 2 }}
-                >
-                  <Twitter className="w-3 h-3" />
-                  <span className="truncate">@{xHandle}</span>
-                </motion.a>
-              )}
-            </div>
+            {/* X handle */}
+            {xHandle && (
+              <a
+                href={member.xProfile}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
+              >
+                @{xHandle}
+              </a>
+            )}
           </div>
         </div>
 
