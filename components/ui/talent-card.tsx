@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Send, ExternalLink, ChevronDown, ChevronUp, User } from "lucide-react";
+import { ExternalLink, ChevronDown, ChevronUp, User } from "lucide-react";
 import { useState } from "react";
 import type { TalentMember } from "@/lib/google-sheets";
 
@@ -29,7 +29,9 @@ export function TalentCard({ member, index }: TalentCardProps) {
     : null;
 
   const xHandle = getXHandle(member.xProfile);
-  const profilePicUrl = xHandle ? `https://unavatar.io/twitter/${xHandle}` : null;
+  const profilePicUrl = xHandle
+    ? `/api/proxy-image?url=${encodeURIComponent(`https://unavatar.io/twitter/${xHandle}`)}`
+    : null;
 
   return (
     <motion.div
@@ -86,13 +88,6 @@ export function TalentCard({ member, index }: TalentCardProps) {
           </div>
         </div>
 
-        {/* Telegram */}
-        {member.telegram && (
-          <div className="flex items-center gap-1.5 text-sm text-zinc-500 mb-3">
-            <Send className="w-3.5 h-3.5" />
-            {member.telegram}
-          </div>
-        )}
 
         {/* Skills */}
         {member.skills.length > 0 && (
