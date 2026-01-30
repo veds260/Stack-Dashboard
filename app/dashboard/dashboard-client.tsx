@@ -8,6 +8,13 @@ import { StatCard } from "@/components/ui/stat-card";
 import { TalentCard } from "@/components/ui/talent-card";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { Footer } from "@/components/ui/footer";
+import {
+  SKILL_FILTERS,
+  EXPERIENCE_FILTERS,
+  RATE_FILTERS,
+  matchesSkillFilter,
+  matchesRateFilter,
+} from "@/lib/constants";
 import type { TalentMember } from "@/lib/google-sheets";
 
 interface DashboardClientProps {
@@ -33,29 +40,6 @@ export function DashboardClient({
   const [selectedExperience, setSelectedExperience] = useState("");
   const [selectedRate, setSelectedRate] = useState("");
 
-  // Get unique filter options
-  const availableSkills = useMemo(() => {
-    const skills = new Set<string>();
-    members.forEach((m) => m.skills.forEach((s) => skills.add(s)));
-    return Array.from(skills).sort();
-  }, [members]);
-
-  const availableExperience = useMemo(() => {
-    const exp = new Set<string>();
-    members.forEach((m) => {
-      if (m.experienceLevel) exp.add(m.experienceLevel);
-    });
-    return Array.from(exp);
-  }, [members]);
-
-  const availableRates = useMemo(() => {
-    const rates = new Set<string>();
-    members.forEach((m) => {
-      if (m.rateRange) rates.add(m.rateRange);
-    });
-    return Array.from(rates);
-  }, [members]);
-
   // Filter members
   const filteredMembers = useMemo(() => {
     return members.filter((member) => {
@@ -69,20 +53,31 @@ export function DashboardClient({
 
       // Skills filter
       if (selectedSkills.length > 0) {
-        const hasSkill = selectedSkills.some((skill) =>
-          member.skills.includes(skill)
+        const hasMatchingSkill = selectedSkills.some((filterSkill) =>
+          matchesSkillFilter(member.skills, filterSkill)
         );
-        if (!hasSkill) return false;
+        if (!hasMatchingSkill) return false;
       }
 
       // Experience filter
-      if (selectedExperience && member.experienceLevel !== selectedExperience) {
-        return false;
+      if (selectedExperience) {
+        const expLower = member.experienceLevel.toLowerCase();
+        const filterLower = selectedExperience.toLowerCase();
+        if (!expLower.includes(filterLower) && !filterLower.includes(expLower)) {
+          // Check for partial matches
+          const expKeywords = selectedExperience.split(/[\s()]+/).filter(Boolean);
+          const hasMatch = expKeywords.some(kw =>
+            kw.length > 2 && expLower.includes(kw.toLowerCase())
+          );
+          if (!hasMatch) return false;
+        }
       }
 
       // Rate filter
-      if (selectedRate && member.rateRange !== selectedRate) {
-        return false;
+      if (selectedRate) {
+        if (!matchesRateFilter(member.rateRange, selectedRate)) {
+          return false;
+        }
       }
 
       return true;
@@ -160,9 +155,9 @@ export function DashboardClient({
           onExperienceChange={setSelectedExperience}
           selectedRate={selectedRate}
           onRateChange={setSelectedRate}
-          availableSkills={availableSkills}
-          availableExperience={availableExperience}
-          availableRates={availableRates}
+          availableSkills={[...SKILL_FILTERS]}
+          availableExperience={[...EXPERIENCE_FILTERS]}
+          availableRates={[...RATE_FILTERS]}
           onClear={clearFilters}
         />
 
