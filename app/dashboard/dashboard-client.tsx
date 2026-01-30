@@ -13,6 +13,7 @@ import {
   EXPERIENCE_FILTERS,
   RATE_FILTERS,
   matchesSkillFilter,
+  matchesExperienceFilter,
   matchesRateFilter,
 } from "@/lib/constants";
 import type { TalentMember } from "@/lib/google-sheets";
@@ -61,15 +62,8 @@ export function DashboardClient({
 
       // Experience filter
       if (selectedExperience) {
-        const expLower = member.experienceLevel.toLowerCase();
-        const filterLower = selectedExperience.toLowerCase();
-        if (!expLower.includes(filterLower) && !filterLower.includes(expLower)) {
-          // Check for partial matches
-          const expKeywords = selectedExperience.split(/[\s()]+/).filter(Boolean);
-          const hasMatch = expKeywords.some(kw =>
-            kw.length > 2 && expLower.includes(kw.toLowerCase())
-          );
-          if (!hasMatch) return false;
+        if (!matchesExperienceFilter(member.experienceLevel, selectedExperience)) {
+          return false;
         }
       }
 
