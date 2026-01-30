@@ -104,30 +104,26 @@ export function DashboardClient({
   }, [stats.experienceCount]);
 
   return (
-    <div className="min-h-screen relative">
-      {/* Background glow orbs */}
-      <div className="fixed top-1/4 left-0 w-96 h-96 bg-red-500/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="fixed bottom-0 right-0 w-96 h-96 bg-red-500/5 rounded-full blur-3xl pointer-events-none" />
-
+    <div className="min-h-screen bg-black">
       <Header onLogout={onLogout} />
 
-      <main className="max-w-7xl mx-auto px-6 pt-24 pb-8">
+      <main className="max-w-6xl mx-auto px-6 pt-20 pb-8">
         {/* Page title */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6"
         >
-          <h1 className="text-4xl font-light tracking-tight text-white mb-2">
+          <h1 className="text-2xl font-normal text-white mb-1">
             Talent Pool
           </h1>
-          <p className="text-zinc-500">
+          <p className="text-sm text-zinc-500">
             Browse and filter Stack Daily community members
           </p>
         </motion.div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <StatCard
             label="Total Members"
             value={stats.totalMembers}
@@ -138,19 +134,19 @@ export function DashboardClient({
             label="Top Skill"
             value={stats.topSkill}
             icon={Sparkles}
-            delay={0.1}
+            delay={0.05}
           />
           <StatCard
             label="Most Common Level"
             value={topExperience.split(" ")[0]}
             icon={BarChart3}
-            delay={0.2}
+            delay={0.1}
           />
           <StatCard
             label="Popular Rate"
             value={stats.topRateRange}
             icon={DollarSign}
-            delay={0.3}
+            delay={0.15}
           />
         </div>
 
@@ -171,36 +167,27 @@ export function DashboardClient({
         />
 
         {/* Results count */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="mb-6 text-sm text-zinc-500"
-        >
+        <div className="mb-4 text-xs text-zinc-500">
           Showing {filteredMembers.length} of {members.length} members
-        </motion.div>
+        </div>
 
         {/* Talent Cards Grid */}
         {filteredMembers.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredMembers.map((member, index) => (
               <TalentCard key={member.id} member={member} index={index} />
             ))}
           </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-16"
-          >
-            <p className="text-zinc-500">No members match your filters</p>
+          <div className="text-center py-16">
+            <p className="text-sm text-zinc-500">No members match your filters</p>
             <button
               onClick={clearFilters}
-              className="mt-4 text-sm text-red-400 hover:text-red-300 transition-colors"
+              className="mt-3 text-xs text-zinc-400 hover:text-white transition-colors"
             >
               Clear all filters
             </button>
-          </motion.div>
+          </div>
         )}
       </main>
 

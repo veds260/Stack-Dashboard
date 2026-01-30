@@ -10,40 +10,13 @@ interface TalentCardProps {
   index: number;
 }
 
-const skillColors: Record<string, string> = {
-  "Video Editing": "bg-red-500/20 text-red-400 border-red-500/30",
-  "Thumbnail Design": "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  "Copywriting": "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  "Social Media Management": "bg-green-500/20 text-green-400 border-green-500/30",
-  "Content Strategy": "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
-  "Graphic Design": "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  "Motion Graphics": "bg-violet-500/20 text-violet-400 border-violet-500/30",
-  "Photography": "bg-pink-500/20 text-pink-400 border-pink-500/30",
-};
-
-const experienceColors: Record<string, string> = {
-  "Beginner (0-1 years)": "bg-zinc-500/20 text-zinc-400 border-zinc-500/30",
-  "Intermediate (1-3 years)": "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  "Advanced (3-5 years)": "bg-violet-500/20 text-violet-400 border-violet-500/30",
-  "Expert (5+ years)": "bg-red-500/20 text-red-400 border-red-500/30",
-};
-
-function getSkillColor(skill: string): string {
-  return skillColors[skill] || "bg-zinc-500/20 text-zinc-400 border-zinc-500/30";
-}
-
-function getExperienceColor(level: string): string {
-  return experienceColors[level] || "bg-zinc-500/20 text-zinc-400 border-zinc-500/30";
-}
-
 export function TalentCard({ member, index }: TalentCardProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const formatXProfile = (url: string) => {
+  const formatXHandle = (url: string) => {
     if (!url) return null;
-    // Extract handle from URL
     const match = url.match(/(?:twitter\.com|x\.com)\/([^/?]+)/i);
-    return match ? `@${match[1]}` : url;
+    return match ? `@${match[1]}` : null;
   };
 
   const joinDate = member.timestamp
@@ -54,112 +27,109 @@ export function TalentCard({ member, index }: TalentCardProps) {
       })
     : null;
 
+  const xHandle = formatXHandle(member.xProfile);
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className="group relative overflow-hidden rounded-2xl bg-zinc-950/50 backdrop-blur-xl border border-zinc-800/50 hover:border-zinc-700/50 transition-all duration-300"
+      transition={{ delay: Math.min(index * 0.03, 0.3), duration: 0.3 }}
+      className="rounded-xl border border-zinc-800/60 bg-zinc-900/30 p-5 flex flex-col"
     >
-      {/* Hover gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      {/* Name */}
+      <h3 className="text-lg font-medium text-white mb-2">{member.name}</h3>
 
-      <div className="relative p-6">
-        {/* Name */}
-        <h3 className="text-xl font-medium text-white mb-3">{member.name}</h3>
+      {/* Social links */}
+      <div className="flex items-center gap-3 mb-4 text-sm">
+        {xHandle && (
+          <a
+            href={member.xProfile}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-zinc-400 hover:text-white transition-colors"
+          >
+            <Twitter className="w-3.5 h-3.5" />
+            {xHandle}
+          </a>
+        )}
+        {member.telegram && (
+          <span className="flex items-center gap-1.5 text-zinc-500">
+            <Send className="w-3.5 h-3.5" />
+            {member.telegram}
+          </span>
+        )}
+      </div>
 
-        {/* Social links */}
-        <div className="flex flex-wrap gap-3 mb-4">
-          {member.xProfile && (
-            <a
-              href={member.xProfile}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition-colors"
-            >
-              <Twitter className="w-4 h-4" />
-              {formatXProfile(member.xProfile)}
-            </a>
-          )}
-          {member.telegram && (
-            <span className="flex items-center gap-1.5 text-sm text-zinc-400">
-              <Send className="w-4 h-4" />
-              {member.telegram}
-            </span>
-          )}
-        </div>
-
-        {/* Skills */}
-        <div className="flex flex-wrap gap-2 mb-4">
+      {/* Skills */}
+      {member.skills.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-3">
           {member.skills.map((skill) => (
             <span
               key={skill}
-              className={`px-2.5 py-1 text-xs rounded-full border ${getSkillColor(skill)}`}
+              className="px-2 py-1 text-xs rounded-md bg-zinc-800/50 text-zinc-400 border border-zinc-700/40"
             >
               {skill}
             </span>
           ))}
         </div>
+      )}
 
-        {/* Experience & Rate */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {member.experienceLevel && (
-            <span
-              className={`px-2.5 py-1 text-xs rounded-full border ${getExperienceColor(member.experienceLevel)}`}
-            >
-              {member.experienceLevel}
-            </span>
-          )}
-          {member.rateRange && (
-            <span className="px-2.5 py-1 text-xs rounded-full border bg-green-500/20 text-green-400 border-green-500/30">
-              {member.rateRange}
-            </span>
-          )}
-        </div>
-
-        {/* Biggest Win */}
-        {member.biggestWin && (
-          <div className="mb-4">
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-400 transition-colors mb-1"
-            >
-              Biggest Win
-              {expanded ? (
-                <ChevronUp className="w-3 h-3" />
-              ) : (
-                <ChevronDown className="w-3 h-3" />
-              )}
-            </button>
-            <p
-              className={`text-sm text-zinc-400 ${
-                expanded ? "" : "line-clamp-2"
-              }`}
-            >
-              {member.biggestWin}
-            </p>
-          </div>
+      {/* Experience & Rate */}
+      <div className="flex flex-wrap gap-1.5 mb-4">
+        {member.experienceLevel && (
+          <span className="px-2 py-1 text-xs rounded-md bg-zinc-800/50 text-zinc-300 border border-zinc-700/40">
+            {member.experienceLevel}
+          </span>
         )}
+        {member.rateRange && (
+          <span className="px-2 py-1 text-xs rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            {member.rateRange}
+          </span>
+        )}
+      </div>
 
-        {/* Portfolio & Date */}
-        <div className="flex items-center justify-between pt-4 border-t border-zinc-800/50">
-          {member.portfolio ? (
-            <a
-              href={member.portfolio}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-sm text-red-400 hover:text-red-300 transition-colors"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Portfolio
-            </a>
-          ) : (
-            <span />
-          )}
-          {joinDate && (
-            <span className="text-xs text-zinc-600">Joined {joinDate}</span>
-          )}
+      {/* Biggest Win */}
+      {member.biggestWin && (
+        <div className="mb-4">
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-400 transition-colors mb-1"
+          >
+            Biggest Win
+            {expanded ? (
+              <ChevronUp className="w-3 h-3" />
+            ) : (
+              <ChevronDown className="w-3 h-3" />
+            )}
+          </button>
+          <p
+            className={`text-sm text-zinc-400 ${
+              expanded ? "" : "line-clamp-2"
+            }`}
+          >
+            {member.biggestWin}
+          </p>
         </div>
+      )}
+
+      {/* Footer */}
+      <div className="mt-auto pt-4 border-t border-zinc-800/40 flex items-center justify-between">
+        {member.portfolio ? (
+          <a
+            href={member.portfolio}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            Portfolio
+          </a>
+        ) : (
+          <span />
+        )}
+        {joinDate && (
+          <span className="text-xs text-zinc-600">Joined {joinDate}</span>
+        )}
       </div>
     </motion.div>
   );
