@@ -1,40 +1,28 @@
-// Predefined skill categories for filtering
+// Predefined skill categories - matching landing page
 export const SKILL_FILTERS = [
-  "Ghostwriting",
-  "Copywriting",
-  "Content Strategy",
-  "Content Creation",
   "Social Media & Community",
-  "Video Editing",
-  "Graphic Design",
-  "Motion Graphics",
-  "UI/UX Design",
-  "Web3 Marketing",
-  "Digital Marketing",
-  "Sales & BD",
   "Project Management",
-  "Research",
-  "KOL",
-  "Clipping",
+  "Sales & BD",
+  "Ghostwriting",
+  "Graphic Design",
+  "Video Editing",
+  "Product & Dev",
   "Others",
 ] as const;
 
-// Predefined experience levels
+// Predefined experience levels - matching landing page
 export const EXPERIENCE_FILTERS = [
   "Beginner (less than a year)",
   "Intermediate (1-2 years)",
   "Advanced (3+ years)",
-  "Wizard 10+",
 ] as const;
 
-// Predefined rate ranges
+// Predefined rate ranges - matching landing page
 export const RATE_FILTERS = [
   "Under $500",
   "$500 - $1,000",
   "$1,000 - $2,000",
   "$2,000 - $2,500",
-  "$2,500 - $5,000",
-  "$5,000+",
 ] as const;
 
 // Helper to check if a skill matches a filter category
@@ -88,9 +76,6 @@ export function matchesRateFilter(memberRate: string, filterRate: string): boole
   // Handle specific filter ranges
   if (filterRate === "Under $500") {
     return memberMax < 500 || rateLower.includes("under");
-  }
-  if (filterRate === "$5,000+") {
-    return memberMin >= 5000 || memberMax >= 5000;
   }
 
   // For other ranges, check overlap
