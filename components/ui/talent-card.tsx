@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Twitter, Send, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
+import { Twitter, Send, ExternalLink, ChevronDown, ChevronUp, User } from "lucide-react";
 import { useState } from "react";
+import Image from "next/image";
 import type { TalentMember } from "@/lib/google-sheets";
 
 interface TalentCardProps {
@@ -12,11 +13,12 @@ interface TalentCardProps {
 
 export function TalentCard({ member, index }: TalentCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const formatXHandle = (url: string) => {
     if (!url) return null;
     const match = url.match(/(?:twitter\.com|x\.com)\/([^/?]+)/i);
-    return match ? `@${match[1]}` : null;
+    return match ? match[1] : null;
   };
 
   const joinDate = member.timestamp
@@ -28,6 +30,7 @@ export function TalentCard({ member, index }: TalentCardProps) {
     : null;
 
   const xHandle = formatXHandle(member.xProfile);
+  const profilePicUrl = xHandle ? `https://unavatar.io/twitter/${xHandle}` : null;
 
   return (
     <motion.div
@@ -48,30 +51,54 @@ export function TalentCard({ member, index }: TalentCardProps) {
       <div className="absolute -top-20 -right-20 w-40 h-40 bg-red-500/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
       <div className="relative">
-        {/* Name */}
-        <h3 className="text-lg font-medium text-white mb-2 group-hover:text-red-50 transition-colors">{member.name}</h3>
+        {/* Header with pfp and name */}
+        <div className="flex items-center gap-3 mb-3">
+          {/* Profile Picture */}
+          <div className="relative w-12 h-12 rounded-full overflow-hidden bg-zinc-800 border-2 border-zinc-700/50 group-hover:border-red-500/30 transition-colors flex-shrink-0">
+            {profilePicUrl && !imgError ? (
+              <Image
+                src={profilePicUrl}
+                alt={member.name}
+                fill
+                className="object-cover"
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-700 to-zinc-800">
+                <User className="w-5 h-5 text-zinc-500" />
+              </div>
+            )}
+            {/* Glow ring on hover */}
+            <div className="absolute inset-0 rounded-full ring-2 ring-red-500/0 group-hover:ring-red-500/20 transition-all duration-500" />
+          </div>
 
-        {/* Social links */}
-        <div className="flex items-center gap-3 mb-4 text-sm">
-          {xHandle && (
-            <motion.a
-              href={member.xProfile}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-zinc-400 hover:text-white transition-colors"
-              whileHover={{ x: 2 }}
-            >
-              <Twitter className="w-3.5 h-3.5" />
-              {xHandle}
-            </motion.a>
-          )}
-          {member.telegram && (
-            <span className="flex items-center gap-1.5 text-zinc-500">
-              <Send className="w-3.5 h-3.5" />
-              {member.telegram}
-            </span>
-          )}
+          <div className="min-w-0">
+            <h3 className="text-lg font-medium text-white group-hover:text-red-50 transition-colors truncate">{member.name}</h3>
+            {/* Social links */}
+            <div className="flex items-center gap-2 text-sm">
+              {xHandle && (
+                <motion.a
+                  href={member.xProfile}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors"
+                  whileHover={{ x: 2 }}
+                >
+                  <Twitter className="w-3 h-3" />
+                  <span className="truncate">@{xHandle}</span>
+                </motion.a>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* Telegram */}
+        {member.telegram && (
+          <div className="flex items-center gap-1.5 text-sm text-zinc-500 mb-3">
+            <Send className="w-3.5 h-3.5" />
+            {member.telegram}
+          </div>
+        )}
 
         {/* Skills */}
         {member.skills.length > 0 && (
