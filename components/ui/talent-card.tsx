@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ExternalLink, ChevronDown, ChevronUp, User } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { TalentMember } from "@/lib/google-sheets";
 
 interface TalentCardProps {
@@ -20,23 +20,48 @@ export function TalentCard({ member, index }: TalentCardProps) {
   const getUsername = (xProfile: string): string | null => {
     if (!xProfile) return null;
     // Remove URL prefix and trailing slash, then remove query params
-    const username = xProfile
+    let username = xProfile
       .replace(/^https?:\/\/(www\.)?(twitter\.com|x\.com)\//i, '')
       .replace(/\/$/, '')
       .split('?')[0]
       .split('/')[0];
+    // Strip leading @ if present to avoid double @
+    if (username.startsWith('@')) {
+      username = username.slice(1);
+    }
     return username || null;
   };
 
   const username = getUsername(member.xProfile);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Lazy load with IntersectionObserver to prevent rate limiting
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '100px', threshold: 0.1 }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
-    if (username) {
+    if (username && isVisible) {
       const unavatarUrl = `https://unavatar.io/twitter/${username}`;
       const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(unavatarUrl)}`;
       setProfilePicUrl(proxyUrl);
     }
-  }, [username]);
+  }, [username, isVisible]);
 
   const joinDate = member.timestamp
     ? new Date(member.timestamp).toLocaleDateString("en-US", {
@@ -48,6 +73,7 @@ export function TalentCard({ member, index }: TalentCardProps) {
 
   return (
     <motion.div
+      ref={cardRef}
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
