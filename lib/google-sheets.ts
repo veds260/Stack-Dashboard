@@ -47,9 +47,16 @@ export async function fetchTalentData(): Promise<TalentMember[]> {
     throw new Error("GOOGLE_SHEET_ID environment variable not set");
   }
 
+  // Get spreadsheet metadata to find the first sheet name
+  const metadata = await sheets.spreadsheets.get({
+    spreadsheetId: sheetId,
+  });
+
+  const firstSheetName = metadata.data.sheets?.[0]?.properties?.title || "Sheet1";
+
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
-    range: "Form Responses 1!A2:I", // Skip header row
+    range: `'${firstSheetName}'!A2:I`, // Skip header row, use actual sheet name
   });
 
   const rows = response.data.values || [];
